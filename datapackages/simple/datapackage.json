@@ -1,0 +1,174 @@
+{
+  "name": "adlershof_rebuild",
+  "resources": [
+    {
+      "name": "demands",
+      "type": "table",
+      "description": "Derived from component: load",
+      "path": "data/elements/demands.yaml",
+      "scheme": "file",
+      "format": "yaml",
+      "mediatype": "text/yaml",
+      "schema": {
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "description": "Name",
+            "custom": {
+              "unit": "n/a"
+            }
+          },
+          {
+            "name": "bus",
+            "type": "string",
+            "description": "The bus this component is connected to",
+            "custom": {
+              "unit": "n/a"
+            }
+          },
+          {
+            "name": "amount",
+            "type": "number",
+            "description": "Total load over one year",
+            "custom": {
+              "unit": "GWh/a"
+            }
+          },
+          {
+            "name": "profile",
+            "type": "string",
+            "description": "Name of the profile",
+            "custom": {
+              "unit": "n/a"
+            }
+          },
+          {
+            "name": "region",
+            "type": "string",
+            "description": "Country code",
+            "custom": {
+              "unit": "n/a"
+            }
+          },
+          {
+            "name": "type",
+            "type": "string",
+            "description": "Type",
+            "custom": {
+              "unit": "n/a"
+            }
+          }
+        ],
+        "primaryKey": [
+          "name"
+        ],
+        "foreignKeys": [
+          {
+            "fields": [
+              "bus"
+            ],
+            "reference": {
+              "resource": "bus",
+              "fields": [
+                "name"
+              ]
+            }
+          }
+        ],
+        "sequenceKeys": [
+          {
+            "reference": "demands_profile",
+            "fields": [
+              "profile"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "demands_profile",
+      "type": "table",
+      "description": "Profiles",
+      "path": "data/sequences/demands_profile.csv",
+      "scheme": "file",
+      "format": "csv",
+      "mediatype": "text/csv",
+      "schema": {
+        "fields": [
+          {
+            "name": "timeindex",
+            "type": "datetime",
+            "description": "Current timestep",
+            "unit": "n/a"
+          },
+          {
+            "name": "AD-electricity-demand-profile",
+            "type": "number",
+            "description": "Value for current timestep",
+            "unit": "n/a"
+          },
+          {
+            "name": "AD-heat_decentral-demand-profile",
+            "type": "number",
+            "description": "Value for current timestep",
+            "unit": "n/a"
+          }
+        ],
+        "primaryKey": [
+          "timeindex"
+        ],
+        "foreignKeys": []
+      }
+    },
+    {
+      "name": "bus",
+      "type": "table",
+      "description": "Derived from component: bus",
+      "path": "data/elements/bus.yaml",
+      "scheme": "file",
+      "format": "yaml",
+      "mediatype": "text/yaml",
+      "schema": {
+        "fields": [
+          {
+            "name": "region",
+            "type": "string",
+            "description": "Country code",
+            "custom": {
+              "unit": "n/a"
+            }
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "description": "Name of the bus. Can be referred by other components.",
+            "custom": {
+              "unit": "n/a"
+            }
+          },
+          {
+            "name": "type",
+            "type": "string",
+            "description": "Type",
+            "custom": {
+              "unit": "n/a"
+            }
+          },
+          {
+            "name": "balanced",
+            "type": "boolean",
+            "description": "Whether bus is balanced or not",
+            "custom": {
+              "unit": ""
+            }
+          }
+        ],
+        "primaryKey": [
+          "name"
+        ],
+        "foreignKeys": []
+      }
+    }
+  ]
+}

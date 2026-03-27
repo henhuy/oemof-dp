@@ -1,0 +1,12 @@
+- name: AD-electricity-demand
+  bus: AD-electricity
+  amount: 1
+  profile: AD-electricity-demand-profile
+  region: AD
+  type: load
+- name: AD-heat_decentral-demand
+  bus: AD-heat_decentral
+  amount: null
+  profile: AD-heat_decentral-demand-profile
+  region: AD
+  type: load

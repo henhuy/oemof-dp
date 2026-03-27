@@ -1,0 +1,8 @@
+- region: null
+  name: AD-electricity
+  type: bus
+  balanced: true
+- region: null
+  name: AD-heat_decentral
+  type: bus
+  balanced: true

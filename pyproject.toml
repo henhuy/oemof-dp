@@ -1,0 +1,9 @@
+[project]
+name = "oemof-dp"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.14"
+dependencies = [
+    "frictionless[csv,pandas]>=5.18.1",
+    "pydantic>=2.12.5",
+]
