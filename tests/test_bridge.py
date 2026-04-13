@@ -1,7 +1,7 @@
 
 from oemof_dp.bridge import SolphBridge
 import os
-from oemof.solph import Bus, Model
+from oemof.solph import Bus, Model, processing
 from oemof.tabular.facades import Conversion, Dispatchable, Link, Load, Storage, Volatile
 
 
@@ -35,6 +35,7 @@ def test_bridge_with_facades():
 
     model = Model(es)
     model.solve("cbc")
-    es.results = model.results()
+    es.results = processing.convert_keys_to_strings(model.results())
+    print(es.results)
 
 

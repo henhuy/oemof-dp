@@ -1,5 +1,6 @@
 import warnings
-from typing import Dict, List
+from decimal import Decimal
+from typing import Any, Dict, List, Union
 
 import pandas as pd
 from frictionless import Checklist, Package, Resource, Row
@@ -51,13 +52,20 @@ class SolphBridge:
         for resource in self.package.resources:
             if "sequences" in resource.path:
                 df = resource.to_pandas()
+                # Ensure all columns with Decimal are converted to float
+                for col in df.columns:
+                    if df[col].dtype == object:
+                        df[col] = df[col].apply(lambda x: float(x) if isinstance(x, Decimal) else x)
+
                 # If timeindex is present, set it as index
                 if "timeindex" in df.columns:
                     df.set_index("timeindex", inplace=True)
                 self.sequences[resource.name] = df
 
-    def _get_sequence(self, resource_name: str, sequence_name: str) -> pd.Series:
+    def _get_sequence(self, resource_name: str, sequence_name: str) -> Union[pd.Series, None]:
         """Return sequence from preloaded sequences in the datapackage."""
+        if sequence_name is None:
+            return None
         if resource_name not in self.sequences:
             raise KeyError(f"Resource '{resource_name}' not found in datapackage.")
         if sequence_name not in self.sequences[resource_name]:
@@ -84,8 +92,20 @@ class SolphBridge:
             raise KeyError("Key 'label' or 'name' not found in data.")
         return data["label"]
 
+    @staticmethod
+    def _convert_decimal_to_float(data: Any) -> Any:
+        """Recursively convert Decimal to float in data structures."""
+        if isinstance(data, Decimal):
+            return float(data)
+        elif isinstance(data, dict):
+            return {k: SolphBridge._convert_decimal_to_float(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [SolphBridge._convert_decimal_to_float(v) for v in data]
+        return data
+
     def _load_node_instance(self, resource: Resource, row: Row):
         data = row.to_dict()
+        data = self._convert_decimal_to_float(data)
         node_type = data.pop("type")
         label = self._get_label(data)
         foreign_keys = resource.schema.foreign_keys
