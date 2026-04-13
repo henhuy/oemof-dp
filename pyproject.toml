@@ -5,5 +5,17 @@ description = "Add your description here"
 requires-python = ">=3.14"
 dependencies = [
     "frictionless[csv,pandas]>=5.18.1",
+    "oemof-solph>=0.6.3",
     "pydantic>=2.12.5",
 ]
+
+[dependency-groups]
+dev = [
+    "oemof-tabular>=0.0.2",
+    "pytest>=9.0.3",
+]
+
+[tools.uv.build]
+
+[tool.uv.sources]
+oemof-tabular = { git = "https://github.com/oemof/oemof-tabular", rev = "feature/support-oemof-0.6" }

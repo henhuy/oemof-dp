@@ -1,8 +1,6 @@
-- region: null
-  name: AD-electricity
-  type: bus
+- type: bus
+  label: electricity
   balanced: true
-- region: null
-  name: AD-heat_decentral
-  type: bus
+- type: bus
+  label: gas
   balanced: true

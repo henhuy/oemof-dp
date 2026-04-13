@@ -1,0 +1,12 @@
+- type: flow
+  input: electricity
+  output: 
+  nominal_capacity: 5
+  fix: electricity_demand
+  variable_costs: 0.3
+- type: flow
+  label: gas_out
+  nominal_capacity: 10
+  variable_costs: 5.5
+- type: flow
+  label: gas_in

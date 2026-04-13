@@ -12,7 +12,7 @@ class SequenceKeyError(RowError):
     description = "Values in the sequence key fields should exist as column names in the reference table"
     template = 'Row at position "{rowNumber}" violates the sequence key: {note}'
 
-    field_names: List[str]
+    field_name: str
     field_cells: List[str]
     reference_name: str
 
@@ -22,7 +22,7 @@ class SequenceKeyError(RowError):
         row,
         *,
         note: str,
-        field_names: List[str],
+        field_name: str,
         field_values: List[Any],
         reference_name: str,
     ):
@@ -31,7 +31,7 @@ class SequenceKeyError(RowError):
             note=note,
             cells=list(map(to_str, row.cells)),
             row_number=row.row_number,
-            field_names=field_names,
+            field_name=field_name,
             field_cells=list(map(to_str, field_values)),
             reference_name=reference_name,
         )
@@ -57,9 +57,9 @@ class SequenceReferenceCheck(Check):
 
         for sk in sequence_keys:
             ref_resource_name = sk.get("reference")
-            fields = sk.get("fields", [])
+            field = sk.get("field", None)
 
-            if not ref_resource_name or not fields:
+            if not ref_resource_name or not field:
                 continue
 
             # 1. Check if reference with given name exists

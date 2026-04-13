@@ -80,7 +80,7 @@
           {
             "reference": "demands_profile",
             "fields": [
-              "profile"
+              "fix"
             ]
           }
         ]
@@ -103,13 +103,13 @@
             "unit": "n/a"
           },
           {
-            "name": "AD-electricity-demand-profile",
+            "name": "electricity-demand-profile",
             "type": "number",
             "description": "Value for current timestep",
             "unit": "n/a"
           },
           {
-            "name": "AD-heat_decentral-demand-profile",
+            "name": "heat_decentral-demand-profile",
             "type": "number",
             "description": "Value for current timestep",
             "unit": "n/a"
