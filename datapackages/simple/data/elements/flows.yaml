@@ -1,6 +1,5 @@
 - type: flow
-  input: electricity
-  output: 
+  label: electricity_in
   nominal_capacity: 5
   fix: electricity_demand
   variable_costs: 0.3

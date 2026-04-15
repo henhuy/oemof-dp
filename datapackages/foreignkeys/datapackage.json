@@ -95,7 +95,7 @@
                         "format": "default"
                     },
                     {
-                        "name": "marginal_utility",
+                        "name": "marginal_cost",
                         "type": "string",
                         "format": "default"
                     }
@@ -115,7 +115,7 @@
                 ],
                 "sequenceKeys": [
                     {
-                        "field": "marginal_utility",
+                        "field": "marginal_cost",
                         "reference": "marginal_utility_profile"
                     },
                     {

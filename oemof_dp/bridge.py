@@ -24,7 +24,6 @@ class SolphBridge:
         self.package = None
         self.es = None
         self.typemap = typemap or DEFAULT_TYPEMAP
-        self.buses: Dict[str, Node] = {}
         self.nodes: Dict[str, Node] = {}
         self.flows: List[Node] = []
         self.sequences: Dict[str, pd.DataFrame] = {}
@@ -81,6 +80,14 @@ class SolphBridge:
             data[sequence_ref["field"]] = sequence
         return data
 
+    def _add_buses_to_data(self, foreign_keys: list[dict[str, str]], data: dict) -> dict:
+        """Replace bus references in data with actual buses."""
+        for bus_ref in foreign_keys:
+            bus_name = data[bus_ref["fields"][0]]
+            # Replace reference name with actual bus
+            data[bus_ref["fields"][0]] = self.nodes[bus_name]
+        return data
+
     @staticmethod
     def _get_label(data: dict) -> str:
         """Get label from node."""
@@ -103,14 +110,20 @@ class SolphBridge:
             return [SolphBridge._convert_decimal_to_float(v) for v in data]
         return data
 
-    def _load_node_instance(self, resource: Resource, row: Row):
+    def _load_node_instance(self, resource: Resource, row: Row) -> tuple[str, Node]:
         data = row.to_dict()
         data = self._convert_decimal_to_float(data)
         node_type = data.pop("type")
         label = self._get_label(data)
-        foreign_keys = resource.schema.foreign_keys
+        data = self._add_buses_to_data(resource.schema.foreign_keys, data)
         sequence_keys = resource.schema.custom.get("sequenceKeys", [])
-        node = Node(type=node_type, foreign_keys=foreign_keys, sequence_keys=sequence_keys, data=data)
+        data = self._add_sequences_to_data(sequence_keys, data)
+        if node_type in self.typemap and issubclass(self.typemap[node_type], Node):
+            node_class = self.typemap[node_type]
+            node = node_class(data=data)
+        else:
+            node_class = Node
+            node = node_class(type=self.typemap[node_type], data=data)
         return label, node
 
     def _load_buses(self):
@@ -123,7 +136,7 @@ class SolphBridge:
                 if row["type"] != "bus":
                     continue
                 label, bus = self._load_node_instance(resource, row)
-                self.buses[label] = bus
+                self.nodes[label] = bus
 
     def _load_components(self):
         """Load components (Sinks, Sources, Transformers)"""
@@ -133,25 +146,7 @@ class SolphBridge:
                     label, node = self._load_node_instance(resource, row)
                     self.nodes[label] = node
 
-
     def build_energysystem(self) -> EnergySystem:
-        def add_buses_to_data(foreign_keys: list[dict[str, str]], data: dict) -> dict:
-            """Replace bus references in data with actual buses."""
-            for bus_ref in foreign_keys:
-                bus_name = data[bus_ref["fields"][0]]
-                # Replace reference name with actual bus
-                data[bus_ref["fields"][0]] = solph_buses[bus_name]
-            return data
-
-        def build_solph_component(node: Node) -> SolphNode:
-            """Build solph component using API node."""
-            if node.type not in self.typemap:
-                raise KeyError(f"Node type '{node.type}' not found in typemap.")
-            solph_component = self.typemap[node.type]
-            data = add_buses_to_data(node.foreign_keys, node.data)
-            data = self._add_sequences_to_data(node.sequence_keys, data)
-            return solph_component(**data)
-
         # Determine timeindex from sequences if available
         timeindex = None
         if self.sequences:
@@ -160,18 +155,10 @@ class SolphBridge:
             timeindex = first_seq.index
         
         es = EnergySystem(timeindex=timeindex)
-        
-        # 1. Create Solph Buses
-        solph_buses = {}
-        for label, bus_internal in self.buses.items():
-            bus = build_solph_component(bus_internal)
-            solph_buses[label] = bus
-            es.add(bus)
             
-        # 2. Create Solph Nodes
-        for node_internal in self.nodes.values():
-            node = build_solph_component(node_internal)
-            es.add(node)
+        # 2. Create all Nodes
+        for node in self.nodes.values():
+            es.add(node.instance)
             
         self.es = es
         return es
