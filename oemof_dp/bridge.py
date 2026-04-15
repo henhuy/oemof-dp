@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Union
 
 import pandas as pd
 from frictionless import Checklist, Package, Resource, Row
-from oemof.network import Node as SolphNode
 from oemof.solph import Bus, EnergySystem, Flow
 from oemof.solph.components import Sink, Source
 
@@ -77,7 +76,7 @@ class SolphBridge:
             sequence_name = data[sequence_ref["field"]]
             sequence = self._get_sequence(sequence_ref["reference"], sequence_name)
             # Replace reference name with actual sequence
-            data[sequence_ref["field"]] = sequence
+            data[sequence_name] = sequence
         return data
 
     def _add_buses_to_data(self, foreign_keys: list[dict[str, str]], data: dict) -> dict:
@@ -85,7 +84,7 @@ class SolphBridge:
         for bus_ref in foreign_keys:
             bus_name = data[bus_ref["fields"][0]]
             # Replace reference name with actual bus
-            data[bus_ref["fields"][0]] = self.nodes[bus_name]
+            data[bus_name] = self.nodes[bus_name]
         return data
 
     @staticmethod
@@ -158,6 +157,7 @@ class SolphBridge:
             
         # 2. Create all Nodes
         for node in self.nodes.values():
+            # TODO: What's with subnodes?
             es.add(node.instance)
             
         self.es = es

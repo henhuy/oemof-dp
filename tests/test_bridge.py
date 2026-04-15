@@ -11,6 +11,7 @@ def test_bridge_with_facades():
     if not os.path.exists(dp_path):
         raise FileNotFoundError(f"Datapackage not found at {dp_path}")
 
+    # Only tabular facades used (expect of Bus)
     typemap = {
         "bus": Bus,
         "conversion": Conversion,
@@ -48,7 +49,7 @@ def test_bridge_with_custom_base_models():
     typemap = {
         "bus": Bus,
         "conversion": Conversion,
-        "dispatchable": DispatchableNode,
+        "dispatchable": DispatchableNode,  # <-- This is a pydantic model instead of Facade
         "link": Link,
         "load": Load,
         "storage": Storage,
