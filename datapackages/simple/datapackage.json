@@ -1,89 +1,38 @@
 {
   "name": "adlershof_rebuild",
+  "profile": "data-package",
   "resources": [
     {
       "name": "demands",
-      "type": "table",
+      "type": "json",
       "description": "Derived from component: load",
       "path": "data/elements/demands.yaml",
       "scheme": "file",
       "format": "yaml",
       "mediatype": "text/yaml",
-      "schema": {
-        "fields": [
-          {
-            "name": "name",
-            "type": "string",
-            "description": "Name",
-            "custom": {
-              "unit": "n/a"
+      "jsonSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "inputs": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             }
           },
-          {
-            "name": "bus",
-            "type": "string",
-            "description": "The bus this component is connected to",
-            "custom": {
-              "unit": "n/a"
-            }
-          },
-          {
-            "name": "amount",
-            "type": "number",
-            "description": "Total load over one year",
-            "custom": {
-              "unit": "GWh/a"
-            }
-          },
-          {
-            "name": "profile",
-            "type": "string",
-            "description": "Name of the profile",
-            "custom": {
-              "unit": "n/a"
-            }
-          },
-          {
-            "name": "region",
-            "type": "string",
-            "description": "Country code",
-            "custom": {
-              "unit": "n/a"
-            }
-          },
-          {
-            "name": "type",
-            "type": "string",
-            "description": "Type",
-            "custom": {
-              "unit": "n/a"
-            }
-          }
-        ],
-        "primaryKey": [
-          "name"
-        ],
-        "foreignKeys": [
-          {
-            "fields": [
-              "bus"
-            ],
-            "reference": {
-              "resource": "bus",
-              "fields": [
-                "name"
-              ]
-            }
-          }
-        ],
-        "sequenceKeys": [
-          {
-            "reference": "demands_profile",
-            "fields": [
-              "fix"
-            ]
-          }
-        ]
+          "required": [
+            "type",
+            "label"
+          ]
+        }
       }
     },
     {
@@ -99,26 +48,20 @@
           {
             "name": "timeindex",
             "type": "datetime",
-            "description": "Current timestep",
-            "unit": "n/a"
+            "description": "Current timestep"
           },
           {
             "name": "electricity-demand-profile",
             "type": "number",
-            "description": "Value for current timestep",
-            "unit": "n/a"
+            "description": "Value for current timestep"
           },
           {
             "name": "heat_decentral-demand-profile",
             "type": "number",
-            "description": "Value for current timestep",
-            "unit": "n/a"
+            "description": "Value for current timestep"
           }
         ],
-        "primaryKey": [
-          "timeindex"
-        ],
-        "foreignKeys": []
+        "primaryKey": "timeindex"
       }
     },
     {
@@ -132,42 +75,100 @@
       "schema": {
         "fields": [
           {
-            "name": "region",
-            "type": "string",
-            "description": "Country code",
-            "custom": {
-              "unit": "n/a"
-            }
-          },
-          {
-            "name": "name",
-            "type": "string",
-            "description": "Name of the bus. Can be referred by other components.",
-            "custom": {
-              "unit": "n/a"
-            }
-          },
-          {
             "name": "type",
             "type": "string",
-            "description": "Type",
-            "custom": {
-              "unit": "n/a"
-            }
+            "description": "Type of the bus"
+          },
+          {
+            "name": "label",
+            "type": "string",
+            "description": "Label of the bus"
           },
           {
             "name": "balanced",
             "type": "boolean",
-            "description": "Whether bus is balanced or not",
-            "custom": {
-              "unit": ""
-            }
+            "description": "Whether bus is balanced or not"
           }
         ],
-        "primaryKey": [
-          "name"
+        "primaryKey": "label"
+      }
+    },
+    {
+      "name": "converters",
+      "type": "json",
+      "description": "Converters",
+      "path": "data/elements/converters.yaml",
+      "scheme": "file",
+      "format": "yaml",
+      "mediatype": "text/yaml",
+      "jsonSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "conversion_factors": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "label"
+          ]
+        }
+      }
+    },
+    {
+      "name": "flows",
+      "type": "table",
+      "description": "Flows",
+      "path": "data/elements/flows.yaml",
+      "scheme": "file",
+      "format": "yaml",
+      "mediatype": "text/yaml",
+      "schema": {
+        "fields": [
+          {
+            "name": "type",
+            "type": "string",
+            "description": "Type of the flow"
+          },
+          {
+            "name": "label",
+            "type": "string",
+            "description": "Label of the flow"
+          },
+          {
+            "name": "nominal_capacity",
+            "type": "number",
+            "description": "Nominal capacity of the flow"
+          },
+          {
+            "name": "fix",
+            "type": "string",
+            "description": "Reference to a profile"
+          },
+          {
+            "name": "variable_costs",
+            "type": "number",
+            "description": "Variable costs of the flow"
+          }
         ],
-        "foreignKeys": []
+        "primaryKey": "label",
+        "sequenceKeys": [
+          {
+            "field": "fix",
+            "reference": "demands_profile"
+          }
+        ]
       }
     }
   ]

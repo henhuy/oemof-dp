@@ -1,7 +1,7 @@
 - type: flow
   label: electricity_in
   nominal_capacity: 5
-  fix: electricity_demand
+  fix: electricity-demand-profile
   variable_costs: 0.3
 - type: flow
   label: gas_out
