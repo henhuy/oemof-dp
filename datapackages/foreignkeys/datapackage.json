@@ -113,7 +113,6 @@
                         }
                     }
                 ],
-                "nestedForeignKeys": [
                 "sequenceKeys": [
                     {
                         "field": "marginal_cost",
