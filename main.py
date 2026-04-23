@@ -3,7 +3,7 @@ import pathlib
 
 from frictionless import Package, Checklist
 
-from checks import SequenceReferenceCheck
+from oemof_dp.checks import SequenceReferenceCheck
 
 DATAPACKAGES_DIR = pathlib.Path(__file__).parent / "datapackages"
 
