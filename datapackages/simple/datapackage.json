@@ -23,6 +23,9 @@
             },
             "inputs": {
               "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
               "additionalProperties": {
                 "type": "string"
               }
