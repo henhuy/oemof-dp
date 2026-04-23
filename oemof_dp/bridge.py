@@ -79,12 +79,12 @@ class SolphBridge:
             data[sequence_name] = sequence
         return data
 
-    def _add_buses_to_data(self, foreign_keys: list[dict[str, str]], data: dict) -> dict:
-        """Replace bus references in data with actual buses."""
-        for bus_ref in foreign_keys:
-            bus_name = data[bus_ref["fields"][0]]
+    def _resolve_references(self, foreign_keys: list[dict[str, str]], data: dict) -> dict:
+        """Replace references in data with related nodes."""
+        for reference in foreign_keys:
+            ref_name = data[reference["fields"][0]]
             # Replace reference name with actual bus
-            data[bus_name] = self.nodes[bus_name]
+            data[ref_name] = self.nodes[ref_name]
         return data
 
     @staticmethod
@@ -114,7 +114,7 @@ class SolphBridge:
         data = self._convert_decimal_to_float(data)
         node_type = data.pop("type")
         label = self._get_label(data)
-        data = self._add_buses_to_data(resource.schema.foreign_keys, data)
+        data = self._resolve_references(resource.schema.foreign_keys, data)
         sequence_keys = resource.schema.custom.get("sequenceKeys", [])
         data = self._add_sequences_to_data(sequence_keys, data)
         if node_type in self.typemap and issubclass(self.typemap[node_type], Node):
