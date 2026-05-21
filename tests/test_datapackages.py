@@ -7,7 +7,7 @@ from oemof_dp import checks
 
 
 def test_datapackage_with_nested_yamls():
-    path = pathlib.Path(__file__).parent.parent / "datapackages" / "simple" / "datapackage.json"
+    path = pathlib.Path(__file__).parent.parent / "datapackages" / "nested" / "datapackage.json"
     package = Package(path)
     
     # 1. Validate the whole package (including our custom checks for tables)
