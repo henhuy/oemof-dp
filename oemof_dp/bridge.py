@@ -1,9 +1,12 @@
+import os
 import warnings
+import yaml
 from decimal import Decimal
 from typing import Any, Dict, List, Union
 
 import pandas as pd
 from frictionless import Checklist, Package, Resource, Row
+from frictionless.resources import JsonResource
 from oemof.solph import Bus, EnergySystem, Flow
 from oemof.solph.components import Sink, Source
 
@@ -36,7 +39,8 @@ class SolphBridge:
         if not report.valid:
             raise RuntimeError("Invald datapackage", report.errors)
         bridge._load_sequences()
-        bridge._load_buses()
+        bridge._load_specific_components("flow")
+        bridge._load_specific_components("bus")
         bridge._load_components()
         return bridge
 
@@ -73,18 +77,22 @@ class SolphBridge:
     def _add_sequences_to_data(self, sequence_keys: list, data: dict) -> dict:
         """Adds sequences to data based on referenced sequence keys."""
         for sequence_ref in sequence_keys:
-            sequence_name = data[sequence_ref["field"]]
+            field_name = sequence_ref["field"]
+            sequence_name = data[field_name]
+            if sequence_name is None:
+                continue
             sequence = self._get_sequence(sequence_ref["reference"], sequence_name)
             # Replace reference name with actual sequence
-            data[sequence_name] = sequence
+            data[field_name] = sequence
         return data
 
     def _resolve_references(self, foreign_keys: list[dict[str, str]], data: dict) -> dict:
         """Replace references in data with related nodes."""
         for reference in foreign_keys:
-            ref_name = data[reference["fields"][0]]
+            field_name = reference["fields"][0]
+            ref_name = data[field_name]
             # Replace reference name with actual bus
-            data[ref_name] = self.nodes[ref_name]
+            data[field_name] = self.nodes[ref_name]
         return data
 
     @staticmethod
@@ -109,9 +117,8 @@ class SolphBridge:
             return [SolphBridge._convert_decimal_to_float(v) for v in data]
         return data
 
-    def _load_node_instance(self, resource: Resource, row: Row) -> tuple[str, Node]:
-        data = row.to_dict()
-        data = self._convert_decimal_to_float(data)
+    def _load_node_instance(self, resource: Resource, row: dict) -> tuple[str, Node]:
+        data = self._convert_decimal_to_float(row)
         node_type = data.pop("type")
         label = self._get_label(data)
         data = self._resolve_references(resource.schema.foreign_keys, data)
@@ -125,14 +132,19 @@ class SolphBridge:
             node = node_class(type=self.typemap[node_type], data=data)
         return label, node
 
-    def _load_buses(self):
-        """Load buses"""
+    def _load_specific_components(self, component_type: str):
+        """
+        Load components of specific type
+
+        This is needed to preload buses and flows.
+        """
         for resource in self.package.resources:
             if "sequences" in resource.path:
                 continue
-            
-            for row in resource.read_rows():
-                if row["type"] != "bus":
+
+            rows = resource.read_json() if isinstance(resource, JsonResource) else resource.read_rows()
+            for row in rows:
+                if row["type"] != component_type:
                     continue
                 label, bus = self._load_node_instance(resource, row)
                 self.nodes[label] = bus
@@ -141,8 +153,10 @@ class SolphBridge:
         """Load components (Sinks, Sources, Transformers)"""
         for resource in self.package.resources:
             if resource.name not in ["bus", "flows"] and not resource.name.endswith("_profile"):
-                for row in resource.read_rows():
-                    label, node = self._load_node_instance(resource, row)
+                rows = resource.read_json() if isinstance(resource, JsonResource) else resource.read_rows()
+                for row in rows:
+                    data = row.to_dict() if isinstance(row, Row) else row
+                    label, node = self._load_node_instance(resource, data)
                     self.nodes[label] = node
 
     def build_energysystem(self) -> EnergySystem:
@@ -157,6 +171,9 @@ class SolphBridge:
             
         # 2. Create all Nodes
         for node in self.nodes.values():
+            # Skip flows as those are already added to the es by components
+            if node.type == Flow:
+                continue
             # TODO: What's with subnodes?
             es.add(node.instance)
             
