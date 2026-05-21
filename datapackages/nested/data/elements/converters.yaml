@@ -1,0 +1,8 @@
+- type: converter
+  label: gasturbine
+  conversion_factors:
+    "@electricity": 0.7
+  inputs:
+    "@gas": "@gas_in"
+  outputs:
+    "@electricity": "@gas_out"

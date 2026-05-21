@@ -1,4 +1,0 @@
-- type: converter
-  label: gasturbine
-  conversion_factors:
-    electricity: 0.7

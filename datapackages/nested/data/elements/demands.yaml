@@ -1,4 +1,4 @@
 - type: sink
   label: electricity-demand
   inputs:
-    electricity: electricity_in
+    "@electricity": "@electricity_in"
