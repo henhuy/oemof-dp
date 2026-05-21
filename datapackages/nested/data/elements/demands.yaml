@@ -2,3 +2,7 @@
   label: electricity-demand
   inputs:
     "@electricity": "@electricity_in"
+- type: source
+  label: gas-source
+  outputs:
+    "@gas": "@gas_source_out"

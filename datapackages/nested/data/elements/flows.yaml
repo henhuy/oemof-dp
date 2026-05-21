@@ -1,11 +1,13 @@
 - type: flow
   label: electricity_in
-  nominal_capacity: 5
+  nominal_capacity: 1
   fix: "@electricity-demand-profile"
   variable_costs: 0.3
 - type: flow
   label: gas_out
-  nominal_capacity: 10
+  nominal_capacity: 100
   variable_costs: 5.5
 - type: flow
   label: gas_in
+- type: flow
+  label: gas_source_out

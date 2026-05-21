@@ -1,4 +1,4 @@
-from oemof.solph.components import Sink, Converter
+from oemof.solph.components import Sink, Source, Converter
 
 from oemof_dp.bridge import SolphBridge
 import os
@@ -90,6 +90,7 @@ def test_bridge_with_nested_resources():
         "link": Link,
         "load": Load,
         "sink": Sink,
+        "source": Source,
         "storage": Storage,
         "volatile": Volatile,
         "flow": Flow,
