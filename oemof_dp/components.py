@@ -1,28 +1,32 @@
 from __future__ import annotations
 
 import inspect
+from typing import TYPE_CHECKING
 
 from oemof.solph import Flow
 from oemof.solph.components import Converter
+
+if TYPE_CHECKING:
+    from oemof_dp.bridge import SolphBridge
 
 
 class Reference:
     """Reference to another component by label.
 
     Created for strings starting with '@' in nested component data.
-    Resolves lazily so the components dict can be fully populated before
+    Resolves lazily so the bridge's nodes dict can be fully populated before
     any instance is requested.
     """
 
-    def __init__(self, name: str, components: dict) -> None:
+    def __init__(self, name: str, bridge: "SolphBridge") -> None:
         """Initialize reference.
 
         Args:
             name: Label of the referenced component (without '@' prefix).
-            components: Shared components dict keyed by label.
+            bridge: The SolphBridge instance that owns the components dict.
         """
         self.name = name
-        self._components = components
+        self._bridge = bridge
 
     @property
     def instance(self) -> object:
@@ -32,9 +36,9 @@ class Reference:
             The solph component instance.
 
         Raises:
-            KeyError: If the referenced label is not in the components dict.
+            KeyError: If the referenced label is not in bridge.nodes.
         """
-        return self._components[self.name].instance
+        return self._bridge.nodes[self.name].instance
 
 
 class Component:
@@ -46,23 +50,21 @@ class Component:
     become nested :class:`Component` instances. Resolution is lazy: solph
     objects are only created when :attr:`instance` is first accessed.
 
-    The bridge populates *components* incrementally. Because resolution is
-    lazy, forward references resolve correctly as long as all components are
+    The bridge populates its nodes incrementally. Because resolution is lazy,
+    forward references resolve correctly as long as all components are
     registered before :attr:`instance` is accessed on any of them.
     """
 
-    def __init__(self, data: dict, typemap: dict, components: dict) -> None:
+    def __init__(self, data: dict, bridge: "SolphBridge") -> None:
         """Initialize component.
 
         Args:
             data: Component data. Must contain a ``type`` key (popped here).
-            typemap: Maps type strings to solph classes (or Component subclasses).
-            components: Shared dict of all components keyed by label.
+            bridge: The SolphBridge that provides the typemap and nodes dict.
         """
         data = dict(data)
         self._type_str: str = data.pop("type")
-        self._typemap = typemap
-        self._components = components
+        self._bridge = bridge
         self._data: dict = self._process_data(data)
         self._instance_cache: object | None = None
 
@@ -72,15 +74,15 @@ class Component:
 
     def _process_key(self, key: str) -> str | Reference:
         if isinstance(key, str) and key.startswith("@"):
-            return Reference(key[1:], self._components)
+            return Reference(key[1:], self._bridge)
         return key
 
     def _process_value(self, value: object) -> object:
         if isinstance(value, str) and value.startswith("@"):
-            return Reference(value[1:], self._components)
+            return Reference(value[1:], self._bridge)
         if isinstance(value, dict):
             if "type" in value:
-                return Component(dict(value), self._typemap, self._components)
+                return Component(dict(value), self._bridge)
             return {self._process_key(k): self._process_value(v) for k, v in value.items()}
         if isinstance(value, list):
             return [self._process_value(item) for item in value]
@@ -115,7 +117,7 @@ class Component:
     @property
     def type(self) -> type | None:
         """Return the solph class mapped to this component's type string."""
-        return self._typemap.get(self._type_str)
+        return self._bridge.typemap.get(self._type_str)
 
     @staticmethod
     def _call_solph(solph_class: type, data: dict) -> object:
@@ -150,11 +152,11 @@ class Component:
             The solph component instance (singleton per Component object).
 
         Raises:
-            KeyError: If the type string is not in the typemap.
+            KeyError: If the type string is not in the bridge's typemap.
         """
         if self._instance_cache is None:
             data = self._resolve_data()
-            solph_class = self._typemap[self._type_str]
+            solph_class = self._bridge.typemap[self._type_str]
             self._instance_cache = self._call_solph(solph_class, data)
         return self._instance_cache
 

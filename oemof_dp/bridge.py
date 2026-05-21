@@ -223,9 +223,9 @@ class SolphBridge:
             and isinstance(mapped_class, type)
             and issubclass(mapped_class, Component)
         ):
-            node: Component = mapped_class(data, self.typemap, self.nodes)
+            node: Component = mapped_class(data, self)
         else:
-            node = Component(data, self.typemap, self.nodes)
+            node = Component(data, self)
 
         return label, node
 
