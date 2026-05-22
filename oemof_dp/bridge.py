@@ -50,8 +50,6 @@ class SolphBridge:
         if not report.valid:
             raise RuntimeError("Invald datapackage", report.errors)
         bridge._load_sequences()
-        bridge._load_specific_components("flow")
-        bridge._load_specific_components("bus")
         bridge._load_components()
         return bridge
 
@@ -256,18 +254,17 @@ class SolphBridge:
     def _load_components(self) -> None:
         """Load all remaining components (sinks, sources, converters, etc.)."""
         for resource in self.package.resources:
-            if resource.name not in ["bus", "flows"] and not resource.name.endswith(
-                "_profile"
-            ):
-                rows = (
-                    resource.read_json()
-                    if isinstance(resource, JsonResource)
-                    else resource.read_rows()
-                )
-                for row in rows:
-                    data = row.to_dict() if isinstance(row, Row) else row
-                    label, node = self._load_node_instance(resource, data)
-                    self.nodes[label] = node
+            if "sequences" in resource.path:
+                continue
+            rows = (
+                resource.read_json()
+                if isinstance(resource, JsonResource)
+                else resource.read_rows()
+            )
+            for row in rows:
+                data = row.to_dict() if isinstance(row, Row) else row
+                label, node = self._load_node_instance(resource, data)
+                self.nodes[label] = node
 
     def build_energysystem(self) -> EnergySystem:
         """Build and return an oemof.solph EnergySystem from loaded components.
